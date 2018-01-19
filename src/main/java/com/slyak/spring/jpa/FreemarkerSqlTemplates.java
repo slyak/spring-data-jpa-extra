@@ -67,6 +67,10 @@ public class FreemarkerSqlTemplates implements ResourceLoaderAware, Initializing
 		suffixResolvers.put(".sftl", new SftlNamedTemplateResolver());
 	}
 
+	public Configuration getConfiguration() {
+		return cfg;
+	}
+	
 	public String process(String entityName, String methodName, Map<String, Object> model) {
 		reloadIfPossible(entityName);
 		try {
@@ -84,7 +88,7 @@ public class FreemarkerSqlTemplates implements ResourceLoaderAware, Initializing
 		return entityName + ":" + methodName;
 	}
 
-	private void reloadIfPossible(final String entityName) {
+	public void reloadIfPossible(final String entityName) {
 		try {
 			Long lastModified = lastModifiedCache.get(entityName);
 			Resource resource = sqlResources.get(entityName);

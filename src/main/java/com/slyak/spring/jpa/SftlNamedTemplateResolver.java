@@ -28,11 +28,8 @@ public class SftlNamedTemplateResolver implements NamedTemplateResolver {
 		final List<String> lines = IOUtils.readLines(inputStream, encoding);
 		return new Iterator<Void>() {
 			String name;
-
 			StringBuilder content = new StringBuilder();
-
 			int index = 0;
-
 			int total = lines.size();
 
 			@Override
