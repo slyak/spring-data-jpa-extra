@@ -75,7 +75,7 @@ public class FreemarkerTemplateQuery extends AbstractJpaQuery {
     private String getQueryFromTpl(Object[] values) {
     		if (isFistParameterIsMethodQuery) {
 			if (values == null || values.length < 2) {
-				throw new IllegalArgumentException("第一个参数为调用的方法名时参数必须>=1");
+				throw new IllegalArgumentException("第一个参数为调用的方法名时参数必须 >= 1");
 			}
 			String methodName = String.valueOf(values[0]);
 			return ContextHolder.getBean(FreemarkerSqlTemplates.class).process(getEntityName(), methodName,

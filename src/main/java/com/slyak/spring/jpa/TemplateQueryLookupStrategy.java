@@ -48,6 +48,8 @@ public class TemplateQueryLookupStrategy implements QueryLookupStrategy {
 			return new FreemarkerTemplateQuery(new JpaQueryMethod(method, metadata, factory, extractor), entityManager);
 		} else if(method.getAnnotation(FistParameterIsMethodQuery.class) != null) {
 			return new FreemarkerTemplateQuery(new JpaQueryMethod(method, metadata, factory, extractor), entityManager, true);
+		}if (method.getAnnotation(CProcedure.class) != null) {
+			return new CStoredProcedureJpaQuery(new JpaQueryMethod(method, metadata, factory, extractor), entityManager);
 		} else {
 			return jpaQueryLookupStrategy.resolveQuery(method, metadata, factory, namedQueries);
 		}
