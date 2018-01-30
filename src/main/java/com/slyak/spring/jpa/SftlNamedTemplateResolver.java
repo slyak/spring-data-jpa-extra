@@ -66,7 +66,7 @@ public class SftlNamedTemplateResolver implements NamedTemplateResolver {
 			}
 
 			private boolean isNameLine(String line) {
-				return StringUtils.contains(line, "--");
+				return StringUtils.startsWith(StringUtils.trim(line), "--");
 			}
 
 			private boolean isNextNameLine() {
