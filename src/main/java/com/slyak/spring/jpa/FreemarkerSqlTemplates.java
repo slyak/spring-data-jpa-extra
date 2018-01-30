@@ -80,7 +80,7 @@ public class FreemarkerSqlTemplates implements ResourceLoaderAware, Initializing
 		}
 		catch (Exception e) {
 			logger.error("process template error. Entity name: " + entityName + " methodName:" + methodName, e);
-			return StringUtils.EMPTY;
+			throw new RuntimeException(e);
 		}
 	}
 
