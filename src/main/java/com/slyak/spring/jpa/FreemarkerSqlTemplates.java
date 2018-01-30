@@ -93,13 +93,12 @@ public class FreemarkerSqlTemplates implements ResourceLoaderAware, Initializing
 			Long lastModified = lastModifiedCache.get(entityName);
 			Resource resource = sqlResources.get(entityName);
 			long newLastModified = resource.lastModified();
-			if (lastModified == null || newLastModified > lastModified) {
+			if (lastModified == null || newLastModified != lastModified) {
 				Iterator<Void> iterator = suffixResolvers.get(suffix)
 						.doInTemplateResource(resource, new NamedTemplateCallback() {
 							@Override
 							public void process(String templateName, String content) {
-								sqlTemplateLoader
-										.putTemplate(getTemplateKey(entityName, templateName), content);
+								sqlTemplateLoader.putTemplate(getTemplateKey(entityName, templateName), content);
 							}
 						});
 				while (iterator.hasNext()) {
