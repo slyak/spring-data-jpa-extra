@@ -175,6 +175,16 @@
             <artifactId>commons-io</artifactId>
         </dependency>
 
+		<dependency>  
+            <groupId>com.querydsl</groupId>  
+            <artifactId>querydsl-jpa</artifactId>  
+        </dependency>  
+        <dependency>  
+            <groupId>com.querydsl</groupId>  
+            <artifactId>querydsl-apt</artifactId>  
+            <scope>provided</scope>
+        </dependency> 
+        
         <!--logging-->
         <dependency>
             <groupId>org.slf4j</groupId>

@@ -1,5 +1,18 @@
 package com.slyak.spring.jpa;
 
+import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.AfterAdvice;
@@ -13,12 +26,6 @@ import org.springframework.data.repository.core.support.RepositoryProxyPostProce
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.util.CollectionUtils;
-
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import java.lang.reflect.ParameterizedType;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * .

@@ -124,12 +124,15 @@ public class FreemarkerSqlTemplates implements ResourceLoaderAware, Initializing
 	public void afterPropertiesSet() throws Exception {
 		Collection<EntityManager> em = ContextHolder.getBeansOfType(EntityManager.class);
 		Set<String> names = new HashSet<String>();
-		for(EntityManager e : em) {
-			Set<EntityType<?>> entities = e.getMetamodel().getEntities();
-			for (EntityType<?> entity : entities) {
-				names.add(entity.getName());
+		if(em != null) {
+			for(EntityManager e : em) {
+				Set<EntityType<?>> entities = e.getMetamodel().getEntities();
+				for (EntityType<?> entity : entities) {
+					names.add(entity.getName());
+				}
 			}
 		}
+		
 		String[] DEFAULT_SEARCH_LOCATIONS = { "classpath:/", "classpath:/config/", "file:./", "file:./config/" };
 		
 		String suffixPattern = "/**/*" + suffix;
