@@ -1,5 +1,9 @@
 package com.slyak.spring.jpa;
 
+import java.lang.reflect.Method;
+
+import javax.persistence.EntityManager;
+
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
@@ -9,9 +13,6 @@ import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.RepositoryQuery;
-
-import javax.persistence.EntityManager;
-import java.lang.reflect.Method;
 
 /**
  * .
@@ -30,8 +31,7 @@ public class TemplateQueryLookupStrategy implements QueryLookupStrategy {
 
 	public TemplateQueryLookupStrategy(EntityManager entityManager, Key key, QueryExtractor extractor,
 			EvaluationContextProvider evaluationContextProvider) {
-		this.jpaQueryLookupStrategy = JpaQueryLookupStrategy
-				.create(entityManager, key, extractor, evaluationContextProvider);
+		this.jpaQueryLookupStrategy = JpaQueryLookupStrategy.create(entityManager, key, extractor, evaluationContextProvider);
 		this.extractor = extractor;
 		this.entityManager = entityManager;
 	}
@@ -44,11 +44,14 @@ public class TemplateQueryLookupStrategy implements QueryLookupStrategy {
 	@Override
 	public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
 			NamedQueries namedQueries) {
-		if (method.getAnnotation(TemplateQuery.class) == null) {
-			return jpaQueryLookupStrategy.resolveQuery(method, metadata, factory, namedQueries);
-		}
-		else {
+		if (method.getAnnotation(TemplateQuery.class) != null) {
 			return new FreemarkerTemplateQuery(new JpaQueryMethod(method, metadata, factory, extractor), entityManager);
+		} else if(method.getAnnotation(FistParameterIsMethodQuery.class) != null) {
+			return new FreemarkerTemplateQuery(new JpaQueryMethod(method, metadata, factory, extractor), entityManager, true);
+		}if (method.getAnnotation(CProcedure.class) != null) {
+			return new CStoredProcedureJpaQuery(new JpaQueryMethod(method, metadata, factory, extractor), entityManager);
+		} else {
+			return jpaQueryLookupStrategy.resolveQuery(method, metadata, factory, namedQueries);
 		}
 	}
 }

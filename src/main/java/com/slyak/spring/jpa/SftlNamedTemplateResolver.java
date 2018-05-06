@@ -28,11 +28,8 @@ public class SftlNamedTemplateResolver implements NamedTemplateResolver {
 		final List<String> lines = IOUtils.readLines(inputStream, encoding);
 		return new Iterator<Void>() {
 			String name;
-
 			StringBuilder content = new StringBuilder();
-
 			int index = 0;
-
 			int total = lines.size();
 
 			@Override
@@ -69,7 +66,7 @@ public class SftlNamedTemplateResolver implements NamedTemplateResolver {
 			}
 
 			private boolean isNameLine(String line) {
-				return StringUtils.contains(line, "--");
+				return StringUtils.startsWith(StringUtils.trim(line), "--");
 			}
 
 			private boolean isNextNameLine() {

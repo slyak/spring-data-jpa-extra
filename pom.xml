@@ -3,7 +3,7 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
+	<groupId>com.slyak</groupId>
     <artifactId>spring-data-jpa-extra</artifactId>
     <version>2.2.0-SNAPSHOT</version>
     <packaging>jar</packaging>
@@ -11,17 +11,53 @@
     <description>spring-data-jpa dynamic query support like mybatis and much easier than mybatis.</description>
     <url>https://github.com/slyak/spring-data-jpa-extra</url>
 
+   <!--http://platform.spring.io/platform/-->
     <parent>
-        <groupId>com.slyak</groupId>
-        <artifactId>slyak-parent</artifactId>
-        <version>1.3.0.RELEASE</version>
+        <groupId>io.spring.platform</groupId>
+        <artifactId>platform-bom</artifactId>
+        <version>Brussels-SR5</version>
+        <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <commons-beanutils-version>1.9.1</commons-beanutils-version>
+        <java.complier.version>1.6</java.complier.version>
+        <fastjson.version>1.2.12</fastjson.version>
+        <guava.version>19.0</guava.version>
+        <jxls.version>1.0.6</jxls.version>
+        <jxl.version>2.6.12</jxl.version>
+        <commons-codec.version>1.10</commons-codec.version>
+        <commons-lang.version>2.6</commons-lang.version>
+        <commons-lang3.version>3.4</commons-lang3.version>
+        <commons-io.version>2.5</commons-io.version>
+        <commons-httpclient.version>3.1</commons-httpclient.version>
+        <commons-fileupload.version>1.3.1</commons-fileupload.version>
+        <xstream.version>1.4.9</xstream.version>
+        <jsoup.version>1.9.2</jsoup.version>
+        <zxing.version>3.2.1</zxing.version>
+        <jpush-version>3.2.9</jpush-version>
+
+        <swagger-annotations.version>1.3.11</swagger-annotations.version>
+        <swagger-springmvc.version>1.0.2</swagger-springmvc.version>
+        <swagger-ui.version>2.2.5</swagger-ui.version>
+        <mysql-connector-java.version>5.1.39</mysql-connector-java.version>
+        <kotlin.version>1.0.6</kotlin.version>
+
+        <!--default docker registry-->
+        <docker.registry>docker.slyak.com</docker.registry>
+
+        <proguard-maven-plugin.version>2.0.10</proguard-maven-plugin.version>
+        <maven-jarsigner-plugin.version>1.4</maven-jarsigner-plugin.version>
+        <native2ascii-maven-plugin.version>1.0-beta-1</native2ascii-maven-plugin.version>
+        <maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
+        <maven-javadoc-plugin.version>2.10.3</maven-javadoc-plugin.version>
+        <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+        <nexus-staging-maven-plugin.version>1.6.5</nexus-staging-maven-plugin.version>
+        
+       <commons-beanutils-version>1.9.1</commons-beanutils-version>
         <commons-logging-version>1.2</commons-logging-version>
         <commons-lang3-version>3.3.2</commons-lang3-version>
+        <nexus-url>nexus.gosoftapp.com:8081</nexus-url>
     </properties>
 
     <organization>
@@ -56,6 +92,11 @@
                 <role>committer</role>
             </roles>
         </developer>
+        
+        <developer>
+			<name>rplees</name>
+			<email>rplees.i.ly@gmail.com</email>
+		</developer>
     </developers>
 
     <!-- 代码库 -->
@@ -107,13 +148,13 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
+            <version>${fastjson.version}</version>
         </dependency>
 
         <!--commons-->
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
-            <version>${commons-beanutils-version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>commons-logging</artifactId>
@@ -124,18 +165,26 @@
         <dependency>
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
-            <version>${commons-logging-version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>${commons-lang3-version}</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
         </dependency>
 
+		<dependency>  
+            <groupId>com.querydsl</groupId>  
+            <artifactId>querydsl-jpa</artifactId>  
+        </dependency>  
+        <dependency>  
+            <groupId>com.querydsl</groupId>  
+            <artifactId>querydsl-apt</artifactId>  
+            <scope>provided</scope>
+        </dependency> 
+        
         <!--logging-->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -189,34 +238,45 @@
                     <compilerVersion>1.6</compilerVersion>
                 </configuration>
             </plugin>
-            <plugin>
+            <!-- <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
+            </plugin> -->
+           <!--  <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
                 <configuration>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
-            </plugin>
-            <plugin>
+            </plugin> -->
+           <!--  <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-            </plugin>
-            <plugin>
+            </plugin> -->
+           <!--  <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <skipTests>true</skipTests>
                 </configuration>
-            </plugin>
+            </plugin> -->
         </plugins>
     </build>
 
-
+	<distributionManagement>
+		<repository>
+			<id>nexus-releases</id>
+			<name>Nexus Release Repository</name>
+			<url>http://${nexus-url}/nexus/content/repositories/releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>nexus-snapshots</id>
+			<name>Nexus Snapshot Repository</name>
+			<url>http://${nexus-url}/nexus/content/repositories/snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
 </project>

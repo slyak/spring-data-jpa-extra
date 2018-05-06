@@ -1,6 +1,13 @@
 package com.slyak.spring.jpa;
 
-import com.slyak.util.AopTargetUtils;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+
 import org.hibernate.SQLQuery;
 import org.hibernate.jpa.internal.QueryImpl;
 import org.springframework.data.domain.Pageable;
@@ -15,12 +22,7 @@ import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.CollectionUtils;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import com.slyak.util.AopTargetUtils;
 
 /**
  * .
@@ -32,7 +34,7 @@ import java.util.Map;
 public class FreemarkerTemplateQuery extends AbstractJpaQuery {
 
     private boolean useJpaSpec = false;
-
+    boolean isFistParameterIsMethodQuery = false;
     /**
      * Creates a new {@link AbstractJpaQuery} from the given {@link JpaQueryMethod}.
      *
@@ -40,8 +42,13 @@ public class FreemarkerTemplateQuery extends AbstractJpaQuery {
      * @param em
      */
     public FreemarkerTemplateQuery(JpaQueryMethod method, EntityManager em) {
-        super(method, em);
-    }
+		this(method, em, false);
+	}
+    
+    public FreemarkerTemplateQuery(JpaQueryMethod method, EntityManager em, boolean isFistParameterIsMethodQuery) {
+		super(method, em);
+		this.isFistParameterIsMethodQuery = isFistParameterIsMethodQuery;
+	}
 
     @Override
     protected Query doCreateQuery(Object[] values) {
@@ -66,8 +73,17 @@ public class FreemarkerTemplateQuery extends AbstractJpaQuery {
     }
 
     private String getQueryFromTpl(Object[] values) {
-        return ContextHolder.getBean(FreemarkerSqlTemplates.class)
-                .process(getEntityName(), getMethodName(), getParams(values));
+    		if (isFistParameterIsMethodQuery) {
+			if (values == null || values.length < 2) {
+				throw new IllegalArgumentException("第一个参数为调用的方法名时参数必须 >= 1");
+			}
+			String methodName = String.valueOf(values[0]);
+			return ContextHolder.getBean(FreemarkerSqlTemplates.class).process(getEntityName(), methodName,
+					getParams(values));
+		} else {
+			return ContextHolder.getBean(FreemarkerSqlTemplates.class).process(getEntityName(), getMethodName(),
+					getParams(values));
+		}    	
     }
 
     private Map<String, Object> getParams(Object[] values) {
@@ -93,6 +109,7 @@ public class FreemarkerTemplateQuery extends AbstractJpaQuery {
         return params;
     }
 
+    @SuppressWarnings("rawtypes")
     public Query createJpaQuery(String queryString) {
         Class<?> objectType = getQueryMethod().getReturnedObjectType();
 
@@ -112,27 +129,34 @@ public class FreemarkerTemplateQuery extends AbstractJpaQuery {
 			query = AopTargetUtils.getTarget(oriProxyQuery);
 			//find generic type
 			ClassTypeInformation<?> ctif = ClassTypeInformation.from(objectType);
-			TypeInformation<?> actualType = ctif.getActualType();
-			if (actualType == null){
-			    actualType = ctif.getRawTypeInformation();
-            }
-			Class<?> genericType = actualType.getType();
-			if (genericType != null && genericType != Void.class) {
-				QueryBuilder.transform(query.getHibernateQuery(), genericType);
+			if (ctif != null) {
+				TypeInformation<?> actualType = ctif.getActualType();
+				if (actualType == null){
+				    actualType = ctif.getRawTypeInformation();
+	            }
+				Class<?> genericType = actualType.getType();
+				if (genericType != null && genericType != Void.class) {
+					QueryBuilder.transform(query.getHibernateQuery(), genericType);
+				}
 			}
+			
+			
 		}
         //return the original proxy query, for a series of JPA actions, e.g.:close em.
         return oriProxyQuery;
     }
 
     private String getEntityName() {
-        return getQueryMethod().getEntityInformation().getJavaType().getSimpleName();
+    		//解决Java类名与EntityName不一致导致找不到模板文件
+    		return getQueryMethod().getEntityInformation().getEntityName();
+        //return getQueryMethod().getEntityInformation().getJavaType().getSimpleName();
     }
 
     private String getMethodName() {
         return getQueryMethod().getName();
     }
-
+    
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     protected TypedQuery<Long> doCreateCountQuery(Object[] values) {
         TypedQuery query = (TypedQuery) getEntityManager()
@@ -140,7 +164,8 @@ public class FreemarkerTemplateQuery extends AbstractJpaQuery {
         bind(query, values);
         return query;
     }
-
+    
+    @SuppressWarnings({ "rawtypes"})
     public Query bind(Query query, Object[] values) {
     	//get proxy target if exist.
         //must be hibernate QueryImpl
