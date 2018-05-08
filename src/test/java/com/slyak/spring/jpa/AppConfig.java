@@ -12,6 +12,10 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
+import com.rp.spring.jpa.FreemarkerSqlTemplates;
+import com.rp.spring.jpa.GenericJpaRepositoryFactoryBean;
+import com.rp.spring.jpa.GenericJpaRepositoryImpl;
+
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
