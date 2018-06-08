@@ -133,7 +133,7 @@ public class FreemarkerSqlTemplates implements ResourceLoaderAware, Initializing
 			}
 		}
 		
-		String[] DEFAULT_SEARCH_LOCATIONS = { "classpath:/", "classpath:/config/", "file:./", "file:./config/" };
+		String[] DEFAULT_SEARCH_LOCATIONS = { "classpath*:/", "classpath*:/config/", "classpath:/", "classpath:/config/", "file:./", "file:./config/" };
 		
 		String suffixPattern = "/**/*" + suffix;
 
