@@ -43,6 +43,7 @@ by xml
 sftl is a ftl template mixed with sqls. The template will be simplified as below. It can be recognized in Intellij IDEA , follow these steps:
 settings->Editor->File Types , find "Freemarker Template" and register a new type named '*.sftl',choose it's 'Template Data Language' such as 'MYSQL'.
 
+
 <img src="./filetypes.gif" width = "500" alt="SLYAK"/>
 <img src="./sftl.gif" width = "500" alt="SLYAK"/>
 
@@ -62,6 +63,8 @@ SELECT id,name as viewName FROM t_sample WHERE id=:id
 you can use it by using source code or adding a maven dependency
 
 <font color='red'><b>notice</b>: if the spring-data-jpa version >= 1.11.x (spring-boot version >= 1.5.x) please use 2.1.x.RELEASE .</font>
+
+<font color='red'><b>notice</b>: if you are using spring-boot 2.0+ or spring5 , please checkout source code of version 3.0.0-SNAPSHOT of branch master</font>
 
 ```xml
     <dependency>
