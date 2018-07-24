@@ -1,7 +1,7 @@
 package com.slyak.spring.jpa;
 
 import com.slyak.util.AopTargetUtils;
-import org.hibernate.jpa.HibernateQuery;
+import org.hibernate.query.NativeQuery;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.query.AbstractJpaQuery;
 import org.springframework.data.jpa.repository.query.JpaParameters;
@@ -36,7 +36,7 @@ public class FreemarkerTemplateQuery extends AbstractJpaQuery {
      * Creates a new {@link AbstractJpaQuery} from the given {@link JpaQueryMethod}.
      *
      * @param method jpa query method
-     * @param em entity manager
+     * @param em     entity manager
      */
     FreemarkerTemplateQuery(JpaQueryMethod method, EntityManager em) {
         super(method, em);
@@ -53,7 +53,7 @@ public class FreemarkerTemplateQuery extends AbstractJpaQuery {
         if (parameters.hasPageableParameter()) {
             Pageable pageable = (Pageable) (values[parameters.getPageableIndex()]);
             if (pageable != null) {
-                query.setFirstResult(pageable.getOffset());
+                query.setFirstResult((int) pageable.getOffset());
                 query.setMaxResults(pageable.getPageSize());
             }
         }
@@ -83,7 +83,7 @@ public class FreemarkerTemplateQuery extends AbstractJpaQuery {
                 Class<?> clz = value.getClass();
                 if (clz.isPrimitive() || String.class.isAssignableFrom(clz) || Number.class.isAssignableFrom(clz)
                         || clz.isArray() || Collection.class.isAssignableFrom(clz) || clz.isEnum()) {
-                    params.put(parameter.getName(), value);
+                    params.put(parameter.getName().orElse(null), value);
                 } else {
                     params = QueryBuilder.toParams(value);
                 }
@@ -99,23 +99,24 @@ public class FreemarkerTemplateQuery extends AbstractJpaQuery {
         Query oriProxyQuery;
 
         //must be hibernate QueryImpl
-        HibernateQuery query;
+        NativeQuery query;
 
         if (useJpaSpec && getQueryMethod().isQueryForEntity()) {
             oriProxyQuery = getEntityManager().createNativeQuery(queryString, objectType);
         } else {
             oriProxyQuery = getEntityManager().createNativeQuery(queryString);
-
             query = AopTargetUtils.getTarget(oriProxyQuery);
+            Class<?> genericType;
             //find generic type
-            ClassTypeInformation<?> ctif = ClassTypeInformation.from(objectType);
-            TypeInformation<?> actualType = ctif.getActualType();
-            if (actualType == null) {
-                actualType = ctif.getRawTypeInformation();
+            if (objectType.isAssignableFrom(Map.class)) {
+                genericType = objectType;
+            } else {
+                ClassTypeInformation<?> ctif = ClassTypeInformation.from(objectType);
+                TypeInformation<?> actualType = ctif.getActualType();
+                genericType = actualType.getType();
             }
-            Class<?> genericType = actualType.getType();
-            if (genericType != null && genericType != Void.class) {
-                QueryBuilder.transform(query.getHibernateQuery(), genericType);
+            if (genericType != Void.class) {
+                QueryBuilder.transform(query, genericType);
             }
         }
         //return the original proxy query, for a series of JPA actions, e.g.:close em.
@@ -142,11 +143,10 @@ public class FreemarkerTemplateQuery extends AbstractJpaQuery {
     private Query bind(Query query, Object[] values) {
         //get proxy target if exist.
         //must be hibernate QueryImpl
-        HibernateQuery targetQuery = AopTargetUtils.getTarget(query);
-        org.hibernate.Query sqlQuery = targetQuery.getHibernateQuery();
+        NativeQuery targetQuery = AopTargetUtils.getTarget(query);
         Map<String, Object> params = getParams(values);
         if (!CollectionUtils.isEmpty(params)) {
-            QueryBuilder.setParams(sqlQuery, params);
+            QueryBuilder.setParams(targetQuery, params);
         }
         return query;
     }

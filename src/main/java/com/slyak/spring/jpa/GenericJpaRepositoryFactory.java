@@ -9,6 +9,7 @@ import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.QueryLookupStrategy;
+import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
 import javax.persistence.Entity;
@@ -45,11 +46,12 @@ public class GenericJpaRepositoryFactory extends JpaRepositoryFactory {
         addRepositoryProxyPostProcessor((factory, repositoryInformation) -> factory.addAdvice(assemblerInterceptor));
     }
 
-    @Override
-    protected QueryLookupStrategy getQueryLookupStrategy(QueryLookupStrategy.Key key,
-                                                         EvaluationContextProvider evaluationContextProvider) {
-        return TemplateQueryLookupStrategy.create(entityManager, key, extractor, evaluationContextProvider);
+
+    protected Optional<QueryLookupStrategy> getQueryLookupStrategy(@Nullable QueryLookupStrategy.Key key,
+                                                                   EvaluationContextProvider evaluationContextProvider) {
+        return Optional.of(TemplateQueryLookupStrategy.create(entityManager, key, extractor, evaluationContextProvider));
     }
+
 
     private List<EntityAssembler> getEntityAssemblers(Class<?> clazz) {
         if (assemblers.isEmpty()) {

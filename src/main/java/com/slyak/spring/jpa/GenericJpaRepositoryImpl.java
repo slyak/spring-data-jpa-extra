@@ -43,7 +43,7 @@ public class GenericJpaRepositoryImpl<T, ID extends Serializable>
 
     @Override
     public Map<ID, T> mget(Collection<ID> ids) {
-        return toMap(findAll(ids));
+        return toMap(findAllById(ids));
     }
 
     @Override
@@ -55,10 +55,7 @@ public class GenericJpaRepositoryImpl<T, ID extends Serializable>
     public List<T> findAllOneByOne(Collection<ID> ids) {
         List<T> results = new ArrayList<>();
         for (ID id : ids) {
-            T one = findOne(id);
-            if (one != null) {
-                results.add(one);
-            }
+            findById(id).ifPresent(results::add);
         }
         return results;
     }
@@ -77,13 +74,13 @@ public class GenericJpaRepositoryImpl<T, ID extends Serializable>
     @Transactional
     public void toggleStatus(ID id) {
         if (isStatusAble && id != null) {
-            T target = findOne(id);
-            if (target != null) {
+            Optional<T> target = findById(id);
+            if (target.isPresent()) {
                 Status status = (Status) ReflectionUtils.invokeMethod(statusReadMethod, target);
                 if (status == Status.ENABLED || status == Status.DISABLED) {
                     ReflectionUtils.invokeMethod(statusWriteMethod, target,
                             status == Status.DISABLED ? Status.ENABLED : Status.DISABLED);
-                    save(target);
+                    save(target.get());
                 }
             }
         }
@@ -100,12 +97,12 @@ public class GenericJpaRepositoryImpl<T, ID extends Serializable>
 
     private void changeStatus(ID id, Status status) {
         if (isStatusAble && id != null) {
-            T target = findOne(id);
-            if (target != null) {
+            Optional<T> target = findById(id);
+            if (target.isPresent()) {
                 Status oldStatus = (Status) ReflectionUtils.invokeMethod(statusReadMethod, target);
                 if (oldStatus != status) {
                     ReflectionUtils.invokeMethod(statusWriteMethod, target, status);
-                    save(target);
+                    save(target.get());
                 }
             }
         }

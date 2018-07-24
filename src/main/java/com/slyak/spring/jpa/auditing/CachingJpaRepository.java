@@ -7,6 +7,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * .
@@ -18,7 +19,7 @@ public interface CachingJpaRepository<T, ID extends Serializable> extends Generi
 
     @Cacheable(value = "dict")
     @Override
-    T findOne(ID id);
+    Optional<T> findById(ID id);
 
     @Cacheable(value = "dict")
     @Override
@@ -42,7 +43,7 @@ public interface CachingJpaRepository<T, ID extends Serializable> extends Generi
 
     @CacheEvict(value = "dict", allEntries = true)
     @Override
-    void delete(ID id);
+    void deleteById(ID id);
 
     @CacheEvict(value = "dict", allEntries = true)
     @Override
@@ -50,7 +51,7 @@ public interface CachingJpaRepository<T, ID extends Serializable> extends Generi
 
     @CacheEvict(value = "dict", allEntries = true)
     @Override
-    void delete(Iterable<? extends T> entities);
+    void deleteAll(Iterable<? extends T> entities);
 
     @CacheEvict(value = "dict", allEntries = true)
     @Override

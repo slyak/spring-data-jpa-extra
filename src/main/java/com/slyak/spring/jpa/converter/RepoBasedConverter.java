@@ -6,12 +6,13 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.GenericTypeResolver;
-import org.springframework.data.jpa.repository.support.JpaEntityInformation;
+import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.data.repository.support.Repositories;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * .
@@ -26,7 +27,7 @@ public abstract class RepoBasedConverter<S, D, ID extends Serializable> extends 
 
     private GenericJpaRepository<S, ID> genericJpaRepository;
 
-    private JpaEntityInformation<S, ID> entityInformation;
+    private EntityInformation<S, ID> entityInformation;
 
     private boolean useCache = false;
 
@@ -37,7 +38,8 @@ public abstract class RepoBasedConverter<S, D, ID extends Serializable> extends 
 
     @Override
     protected S internalGet(ID id) {
-        return genericJpaRepository.findOne(id);
+        Optional<S> optional = genericJpaRepository.findById(id);
+        return optional.orElse(null);
     }
 
     @Override
@@ -53,8 +55,8 @@ public abstract class RepoBasedConverter<S, D, ID extends Serializable> extends 
         Class<?>[] classes = GenericTypeResolver.resolveTypeArguments(this.getClass(), RepoBasedConverter.class);
         Class<?> clazz = classes[0];
         this.repositories = new Repositories(context);
-        this.entityInformation = (JpaEntityInformation<S, ID>) repositories.getEntityInformationFor(clazz);
-        this.genericJpaRepository = (GenericJpaRepository<S, ID>) repositories.getRepositoryFor(clazz);
+        this.entityInformation = repositories.getEntityInformationFor(clazz);
+        this.genericJpaRepository = (GenericJpaRepository<S, ID>) repositories.getRepositoryFor(clazz).orElse(null);
         this.useCache = genericJpaRepository instanceof CachingJpaRepository;
     }
 }

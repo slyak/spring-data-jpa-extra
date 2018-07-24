@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.type.descriptor.java.DataHelper;
@@ -58,8 +58,7 @@ public class JSONType implements UserType, DynamicParameterizedType, Serializabl
     }
 
     @Override
-    public Object nullSafeGet(ResultSet rs, String[] names, SessionImplementor session, Object owner) throws
-            HibernateException, SQLException {
+    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor sharedSessionContractImplementor, Object o) throws HibernateException, SQLException {
         String value = extractString(rs.getObject(names[0]));
         if (rs.wasNull() || StringUtils.isEmpty(value)) {
             if (LOG.isTraceEnabled()) {
@@ -74,8 +73,7 @@ public class JSONType implements UserType, DynamicParameterizedType, Serializabl
     }
 
     @Override
-    public void nullSafeSet(PreparedStatement st, Object value, int index, SessionImplementor session) throws
-            HibernateException, SQLException {
+    public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor sharedSessionContractImplementor) throws HibernateException, SQLException {
         if (value == null) {
             if (LOG.isTraceEnabled()) {
                 LOG.tracev("Binding null to parameter: {0}", index);
