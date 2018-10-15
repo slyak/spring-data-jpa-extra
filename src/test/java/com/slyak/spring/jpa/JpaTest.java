@@ -40,7 +40,7 @@ public class JpaTest {
 	@Test
 	public void findByTemplateQuery() {
 		Page<Sample> samples = sampleRepository.findByContent("%world1%", new PageRequest(0, 100));
-		Assert.assertTrue(samples.getTotalElements() == 12);
+		Assert.assertTrue(samples.getTotalElements() == 3);
 	}
 	
 	@Test
