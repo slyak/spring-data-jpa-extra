@@ -141,7 +141,8 @@ public class FreemarkerSqlTemplates implements ResourceLoaderAware, Initializing
 		Set<String> names = new HashSet<String>();
 		Set<EntityType<?>> entities = em.getMetamodel().getEntities();
 		for (EntityType<?> entity : entities) {
-			names.add(entity.getName());
+			//names.add(entity.getName());
+			names.add(entity.getJavaType().getName());
 		}
 
 		String suffixPattern = "/**/*" + suffix;
