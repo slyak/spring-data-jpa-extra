@@ -1,11 +1,12 @@
 package com.slyak.spring.jpa;
 
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
-
-import java.util.List;
-import java.util.Map;
+import org.springframework.data.repository.query.Param;
 
 /**
  * .
@@ -17,13 +18,13 @@ import java.util.Map;
 public interface SampleRepository extends GenericJpaRepository<Sample, Long> {
 
 	@TemplateQuery
-	Page<Sample> findByContent(String content, Pageable pageable);
-
+	Page<Sample> findByContent(@Param("content") String content, Pageable pageable);
+	
 	@TemplateQuery
 	List<Sample> findByTemplateQueryObject(SampleQuery sampleQuery, Pageable pageable);
 
 	@TemplateQuery
-	Long countContent(String content);
+	Long countContent(@Param("content") String content);
 
 	@TemplateQuery
 	List<SampleDTO> findDtos();
