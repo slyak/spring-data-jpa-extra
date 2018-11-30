@@ -86,7 +86,7 @@ public class GenericJpaRepositoryImpl<T, ID extends Serializable> extends Queryd
 	 */
 	@Override
 	public List<T> findAll(Predicate predicate, int maxResult) {
-		return createQuery(predicate).select(path).offset(maxResult).fetch();
+		return createQuery(predicate).select(path).limit(maxResult).fetch();
 	}
 
 	@Override
