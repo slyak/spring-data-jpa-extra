@@ -64,7 +64,7 @@ you can use it by using source code or adding a maven dependency
 
 <font color='red'><b>notice</b>: if the spring-data-jpa version >= 1.11.x (spring-boot version >= 1.5.x) please use 2.1.x.RELEASE .</font>
 
-<font color='red'><b>notice</b>: if you are using spring-boot 2.0+ or spring5 , please checkout source code of version 3.0.0-SNAPSHOT of branch master</font>
+<font color='red'><b>notice</b>: if you are using spring-boot 2.0+ or spring5 , please use the latest version 3.0.0.RELEASE</font>
 
 ```xml
     <dependency>
