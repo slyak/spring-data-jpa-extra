@@ -66,6 +66,12 @@ you can use it by using source code or adding a maven dependency
 
 <font color='red'><b>notice</b>: if you are using spring-boot 2.0+ or spring5 , please use the latest version 3.0.0.RELEASE</font>
 
+
+|spring version|spring-data-jpa-extra version|
+|:----------:|:-------------:|
+| spring 3 (spring-boot 1.5.x) |  2.1.x.RELEASE |
+| spring 4 (spring-boot 2.0.x) |  3.0.0.RELEASE |
+
 ```xml
     <dependency>
         <groupId>com.slyak</groupId>
