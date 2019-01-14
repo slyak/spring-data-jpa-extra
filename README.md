@@ -90,6 +90,8 @@ or with xml
 <jpa:repositories base-package="your.packages" repository-base-class="com.slyak.spring.jpa.GenericJpaRepositoryImpl" repository-factory-bean-class="com.slyak.spring.jpa.GenericJpaRepositoryFactoryBean"/>
 ```
 
+>Notice: if you are using spring-boot, the [springboot-starter-jpa-extra](https://github.com/slyak/spring-boot-starter-jpa-extra) should be the best choice!
+
 ## 2 Miniute Tutorial
 
 ### Template Query
