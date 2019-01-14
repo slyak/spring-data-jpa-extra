@@ -38,13 +38,13 @@ public class JpaTest {
 
 	@Test
 	public void findByTemplateQuery() {
-		Page<Sample> samples = sampleRepository.findByContent("world", PageRequest.of(1, 100));
+		Page<Sample> samples = sampleRepository.findByContent("%world%", PageRequest.of(0, 100));
 		Assert.assertTrue(samples.getTotalElements() == 10);
 	}
 
 	@Test
 	public void countByTemplateQuery() {
-		long count = sampleRepository.countContent("world");
+		long count = sampleRepository.countContent("%world%");
 		Assert.assertTrue(count == 10);
 	}
 
