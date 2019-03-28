@@ -25,7 +25,7 @@ by xml
 ```
 
 
-- second extends GenericJpaRepository insteadof JpaRepository
+- second extends GenericJpaRepository instead of JpaRepository
 
 ```java
 	public interface SampleRepository extends GenericJpaRepository<Sample, Long> {
@@ -37,7 +37,7 @@ by xml
 ```
 
 - third create a file named Sample.sftl in your classpath:/sqls/ (you can change this path by setting placeholder <font color="#008B8B">spring.jpa.template-location</font>)
-	- *.sftl naming rule: {EntityName}.sftl , @Entity("{EntityName}"), a simple class name will be used as EntityName if not set.
+	- *.sftl naming rule: `{EntityName}.sftl` , `@Entity("{EntityName}")`, a simple class name will be used as EntityName if not set.
 
 - In version >=2.0.0.RELEASE , new template 'sftl' take place of xml (xml is complex, but it is also supported).
 sftl is a ftl template mixed with sqls. The template will be simplified as below. It can be recognized in Intellij IDEA , follow these steps:
@@ -92,19 +92,19 @@ or with xml
 
 >Notice: if you are using spring-boot, the [springboot-starter-jpa-extra](https://github.com/slyak/spring-boot-starter-jpa-extra) should be the best choice!
 
-## 2 Miniute Tutorial
+## 2 Minute Tutorial
 
 ### Template Query
-Methods annotated with @TemplateQuery tells QueryLookupStrategy to look up query by content,this is often used by dynamic query.
+Methods annotated with `@TemplateQuery` tells `QueryLookupStrategy` to look up query by content,this is often used by dynamic query.
 
 ### Template Query Object
-Object annotated with @TemplateQueryObject tells content process engine render params provided by object properties.
+Object annotated with `@TemplateQueryObject` tells content process engine render params provided by object properties.
 
 ### Entity Assemblers
 Entity assemblers can assembler entity with other entities, such as one to many relation or one to one relation.
 
 
-### More Useful Methods (eg: mget togglestatus fakedelete)
+### More Useful Methods (eg: `mget` `togglestatus` `fakedelete`)
 
 ```java
     //batch get items and put the result into a map
