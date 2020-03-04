@@ -5,13 +5,14 @@ import java.lang.reflect.Method;
 import javax.persistence.EntityManager;
 
 import org.springframework.data.jpa.provider.QueryExtractor;
+import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
-import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.QueryLookupStrategy;
+import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 
 /**
@@ -30,15 +31,15 @@ public class TemplateQueryLookupStrategy implements QueryLookupStrategy {
 	private QueryExtractor extractor;
 
 	public TemplateQueryLookupStrategy(EntityManager entityManager, Key key, QueryExtractor extractor,
-			EvaluationContextProvider evaluationContextProvider) {
-		this.jpaQueryLookupStrategy = JpaQueryLookupStrategy.create(entityManager, key, extractor, evaluationContextProvider);
+			QueryMethodEvaluationContextProvider evaluationContextProvider, EscapeCharacter ec) {
+		this.jpaQueryLookupStrategy = JpaQueryLookupStrategy.create(entityManager, key, extractor, evaluationContextProvider, ec);
 		this.extractor = extractor;
 		this.entityManager = entityManager;
 	}
 
 	public static QueryLookupStrategy create(EntityManager entityManager, Key key, QueryExtractor extractor,
-			EvaluationContextProvider evaluationContextProvider) {
-		return new TemplateQueryLookupStrategy(entityManager, key, extractor, evaluationContextProvider);
+			QueryMethodEvaluationContextProvider evaluationContextProvider, EscapeCharacter ec) {
+		return new TemplateQueryLookupStrategy(entityManager, key, extractor, evaluationContextProvider, ec);
 	}
 
 	@Override
