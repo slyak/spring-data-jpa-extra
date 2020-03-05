@@ -20,6 +20,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 import com.querydsl.core.types.EntityPath;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPQLQuery;
@@ -51,6 +52,7 @@ public class GenericJpaRepositoryImpl<T, ID extends Serializable> extends Queryd
 		this(eif, em, DEFAULT_ENTITY_PATH_RESOLVER);
 	}
 
+	@SuppressWarnings("deprecation")
 	public GenericJpaRepositoryImpl(JpaEntityInformation<T, ID> entityInformation, EntityManager entityManager,
 			EntityPathResolver resolver) {
 		super(entityInformation, entityManager);
@@ -84,11 +86,13 @@ public class GenericJpaRepositoryImpl<T, ID extends Serializable> extends Queryd
 	 * @param maxResult
 	 * @return
 	 */
+	@SuppressWarnings("deprecation")
 	@Override
 	public List<T> findAll(Predicate predicate, int maxResult) {
 		return createQuery(predicate).select(path).limit(maxResult).fetch();
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public T findOneIfMutil(Predicate predicate) {
 		return createQuery(predicate).select(path).fetchFirst();
@@ -100,6 +104,13 @@ public class GenericJpaRepositoryImpl<T, ID extends Serializable> extends Queryd
 		final JPQLQuery<?> countQuery = jpqlQuery;
 		JPQLQuery<K> query = querydsl.applyPagination(pageable, jpqlQuery);
 		return PageableExecutionUtils.getPage(query.fetch(), pageable, countQuery::fetchCount);
+	}
+	
+	@SuppressWarnings({ "unchecked", "deprecation", "rawtypes" })
+	@Override
+	public <K> Page<K> findAll(Predicate predicate, Pageable pageable, OrderSpecifier<?>... sorts) {
+		JPQLQuery jpqlQuery = createQuery(predicate).select(path).orderBy(sorts);
+		return findAll(jpqlQuery, pageable);
 	}
 
 	@Transactional

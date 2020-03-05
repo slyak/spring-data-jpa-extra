@@ -138,6 +138,7 @@ public class FreemarkerSqlTemplates implements ResourceLoaderAware, Initializing
 		String suffixPattern = "/**/*" + suffix;
 
 		if (!names.isEmpty()) {
+			long currDate = System.currentTimeMillis();
 			for(String prefix : DEFAULT_SEARCH_LOCATIONS) {
 				String pattern;
 				if (StringUtils.isNotBlank(templateBasePackage)) {
@@ -165,6 +166,8 @@ public class FreemarkerSqlTemplates implements ResourceLoaderAware, Initializing
 				}
 				
 			}
+			
+			logger.info(String.format("扫描完成,耗时 %s 毫秒", (System.currentTimeMillis() - currDate)));
 		}
 	}
 

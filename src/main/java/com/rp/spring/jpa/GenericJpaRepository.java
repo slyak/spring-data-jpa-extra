@@ -10,6 +10,7 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.JPQLQuery;
 
@@ -34,6 +35,8 @@ public interface GenericJpaRepository<T, ID extends Serializable> extends JpaRep
 	List<T> findAll(Predicate predicate, int maxResult);
 	
 	<K> Page<K> findAll(JPQLQuery<K> jpqlQuery, Pageable pageable);
+	
+	<K> Page<K> findAll(Predicate predicate, Pageable pageable, OrderSpecifier<?>... sorts);
 	
 	T findOneIfMutil(Predicate predicate);
 	
