@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -26,6 +27,9 @@ import com.querydsl.jpa.JPQLQuery;
  */
 @NoRepositoryBean
 public interface GenericJpaRepository<T, ID extends Serializable> extends JpaRepository<T, ID>, QuerydslPredicateExecutor<T> {
+	final int STATUS_NORMAL = 1;
+	final int STATUS_DISABLE = -1;
+	
 	/**
 	 * 条件查询返回最大数量的集合
 	 * @param predicate
@@ -33,6 +37,14 @@ public interface GenericJpaRepository<T, ID extends Serializable> extends JpaRep
 	 * @return
 	 */
 	List<T> findAll(Predicate predicate, int maxResult);
+	
+	List<T> findAll(Predicate predicate);
+	
+	List<T> findAll(Predicate predicate, Sort sort);
+
+	List<T> findAll(Predicate predicate, OrderSpecifier<?>... orders);
+	
+	List<T> findAll(OrderSpecifier<?>... orders);
 	
 	<K> Page<K> findAll(JPQLQuery<K> jpqlQuery, Pageable pageable);
 	
@@ -44,12 +56,19 @@ public interface GenericJpaRepository<T, ID extends Serializable> extends JpaRep
 	 * 设置实体.status的状态为 启用/正常 状态
 	 */
 	@Transactional
-	void setStatusEnable(ID id);
+	default void setStatusEnable(ID id) {
+		setStatusValue(id, STATUS_NORMAL);
+	}
 	
 	/**
 	 * 设置实体.status的状态为 禁用 状态
 	 */
 	@Transactional
-	void setStatusDisable(ID id);
+	default void setStatusDisable(ID id) {
+		setStatusValue(id, STATUS_DISABLE);
+	}
+	
+	@Transactional
+	void setStatusValue(ID id, Integer status);
 }
 

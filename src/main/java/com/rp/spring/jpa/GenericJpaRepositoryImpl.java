@@ -34,8 +34,6 @@ import com.querydsl.jpa.JPQLQuery;
  */
 public class GenericJpaRepositoryImpl<T, ID extends Serializable> extends QuerydslJpaRepository<T, ID>
 		implements GenericJpaRepository<T, ID>, Serializable {
-	final int STATUS_NORMAL = 1;
-	final int STATUS_DISABLE = -1;
 	
 	/** 描述 */
 	private static final long serialVersionUID = -2244136368552010216L;
@@ -91,6 +89,12 @@ public class GenericJpaRepositoryImpl<T, ID extends Serializable> extends Queryd
 	public List<T> findAll(Predicate predicate, int maxResult) {
 		return createQuery(predicate).select(path).limit(maxResult).fetch();
 	}
+	
+	@SuppressWarnings("deprecation")
+	@Override
+	public List<T> findAll(Predicate predicate) {
+		return createQuery(predicate).select(path).fetch();
+	}
 
 	@SuppressWarnings("deprecation")
 	@Override
@@ -115,17 +119,7 @@ public class GenericJpaRepositoryImpl<T, ID extends Serializable> extends Queryd
 
 	@Transactional
 	@Override
-	public void setStatusEnable(ID id) {
-		setStatusValue(id, STATUS_NORMAL);
-	}
-
-	@Transactional
-	@Override
-	public void setStatusDisable(ID id) {
-		setStatusValue(id, STATUS_DISABLE);
-	}
-
-	private void setStatusValue(ID id, Integer status) {
+	public void setStatusValue(ID id, Integer status) {
 		if (this.statusDescriptor == null) {
 			throw new IllegalArgumentException(String.format("实体%s没有status字段.", this.eif.getEntityName()));
 		}
