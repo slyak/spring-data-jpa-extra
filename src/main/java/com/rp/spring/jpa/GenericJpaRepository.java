@@ -40,17 +40,21 @@ public interface GenericJpaRepository<T, ID extends Serializable> extends JpaRep
 	
 	List<T> findAll(Predicate predicate);
 	
+	List<T> findAll(Predicate... predicate);
+	
 	List<T> findAll(Predicate predicate, Sort sort);
 
 	List<T> findAll(Predicate predicate, OrderSpecifier<?>... orders);
 	
 	List<T> findAll(OrderSpecifier<?>... orders);
 	
+	long count(Predicate... predicate);
+	
 	<K> Page<K> findAll(JPQLQuery<K> jpqlQuery, Pageable pageable);
 	
 	<K> Page<K> findAll(Predicate predicate, Pageable pageable, OrderSpecifier<?>... sorts);
 	
-	T findOneIfMutil(Predicate predicate);
+	T findOneIfMutil(Predicate... predicate);
 	
 	/**
 	 * 设置实体.status的状态为 启用/正常 状态

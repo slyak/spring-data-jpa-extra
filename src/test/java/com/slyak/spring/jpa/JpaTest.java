@@ -1,5 +1,8 @@
 package com.slyak.spring.jpa;
 
+import java.util.List;
+import java.util.Map;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,9 +12,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * .
@@ -38,7 +38,7 @@ public class JpaTest {
 
 	@Test
 	public void findByTemplateQuery() {
-		Page<Sample> samples = sampleRepository.findByContent("world", new PageRequest(1, 100));
+		Page<Sample> samples = sampleRepository.findByContent("world", PageRequest.of(1, 100));
 		Assert.assertTrue(samples.getTotalElements() == 10);
 	}
 

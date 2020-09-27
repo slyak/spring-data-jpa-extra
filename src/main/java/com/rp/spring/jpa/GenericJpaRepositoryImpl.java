@@ -32,6 +32,7 @@ import com.querydsl.jpa.JPQLQuery;
  * @author <a href="mailto:stormning@163.com">stormning</a>
  * @version V1.0, 2015/8/7
  */
+@SuppressWarnings("deprecation")
 public class GenericJpaRepositoryImpl<T, ID extends Serializable> extends QuerydslJpaRepository<T, ID>
 		implements GenericJpaRepository<T, ID>, Serializable {
 	
@@ -50,7 +51,6 @@ public class GenericJpaRepositoryImpl<T, ID extends Serializable> extends Queryd
 		this(eif, em, DEFAULT_ENTITY_PATH_RESOLVER);
 	}
 
-	@SuppressWarnings("deprecation")
 	public GenericJpaRepositoryImpl(JpaEntityInformation<T, ID> entityInformation, EntityManager entityManager,
 			EntityPathResolver resolver) {
 		super(entityInformation, entityManager);
@@ -84,21 +84,28 @@ public class GenericJpaRepositoryImpl<T, ID extends Serializable> extends Queryd
 	 * @param maxResult
 	 * @return
 	 */
-	@SuppressWarnings("deprecation")
 	@Override
 	public List<T> findAll(Predicate predicate, int maxResult) {
 		return createQuery(predicate).select(path).limit(maxResult).fetch();
 	}
 	
-	@SuppressWarnings("deprecation")
 	@Override
 	public List<T> findAll(Predicate predicate) {
 		return createQuery(predicate).select(path).fetch();
 	}
-
-	@SuppressWarnings("deprecation")
+	
 	@Override
-	public T findOneIfMutil(Predicate predicate) {
+	public List<T> findAll(Predicate... predicate) {
+		return createQuery(predicate).select(path).fetch();
+	}
+	
+	@Override
+	public long count(Predicate... predicate) {
+		return createQuery(predicate).select(path).fetchCount();
+	}
+
+	@Override
+	public T findOneIfMutil(Predicate... predicate) {
 		return createQuery(predicate).select(path).fetchFirst();
 	}
 
@@ -110,7 +117,7 @@ public class GenericJpaRepositoryImpl<T, ID extends Serializable> extends Queryd
 		return PageableExecutionUtils.getPage(query.fetch(), pageable, countQuery::fetchCount);
 	}
 	
-	@SuppressWarnings({ "unchecked", "deprecation", "rawtypes" })
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public <K> Page<K> findAll(Predicate predicate, Pageable pageable, OrderSpecifier<?>... sorts) {
 		JPQLQuery jpqlQuery = createQuery(predicate).select(path).orderBy(sorts);
