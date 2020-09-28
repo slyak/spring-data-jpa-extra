@@ -12,10 +12,11 @@ import org.hibernate.SQLQuery;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.query.AbstractJpaQuery;
 import org.springframework.data.jpa.repository.query.JpaParameters;
-import org.springframework.data.jpa.repository.query.JpaParametersParameterAccessor;
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.repository.query.Parameter;
+import org.springframework.data.repository.query.ParameterAccessor;
+import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.CollectionUtils;
@@ -50,10 +51,10 @@ public class FreemarkerTemplateQuery extends AbstractJpaQuery {
 
     @SuppressWarnings("deprecation")
 	@Override
-    protected Query doCreateQuery(JpaParametersParameterAccessor accessor) {
-    		Object[] values = accessor.getValues();
+    protected Query doCreateQuery(Object[] values) {
         String nativeQuery = getQuery(values);
         JpaParameters parameters = getQueryMethod().getParameters();
+        ParameterAccessor accessor = new ParametersParameterAccessor(parameters, values);
         String sortedQueryString = QueryUtils.applySorting(nativeQuery, accessor.getSort(), QueryUtils.detectAlias(nativeQuery));
         Query query = bind(createJpaQuery(sortedQueryString), values);
         if (parameters.hasPageableParameter()) {
@@ -152,8 +153,7 @@ public class FreemarkerTemplateQuery extends AbstractJpaQuery {
     
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
-    protected TypedQuery<Long> doCreateCountQuery(JpaParametersParameterAccessor accessor) {
-    		Object[] values = accessor.getValues();
+    protected TypedQuery<Long> doCreateCountQuery(Object[] values) {
         TypedQuery query = (TypedQuery) getEntityManager().createNativeQuery(QueryBuilder.toCountQuery(getQuery(values)));
         bind(query, values);
         return query;
@@ -165,7 +165,6 @@ public class FreemarkerTemplateQuery extends AbstractJpaQuery {
         //must be hibernate QueryImpl
     		org.hibernate.query.Query targetQuery = AopTargetUtils.getTarget(query);
 
-		@SuppressWarnings("deprecation")
 		SQLQuery sqlQuery = (SQLQuery) targetQuery;
         Map<String, Object> params = getParams(values);
         if (!CollectionUtils.isEmpty(params)) {
