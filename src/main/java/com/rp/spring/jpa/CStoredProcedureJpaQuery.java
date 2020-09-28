@@ -4,24 +4,32 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.ParameterMode;
+import javax.persistence.Query;
 import javax.persistence.StoredProcedureQuery;
 import javax.persistence.TypedQuery;
 
+import org.hibernate.SQLQuery;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.jpa.repository.query.AbstractJpaQuery;
 import org.springframework.data.jpa.repository.query.JpaParameters;
+import org.springframework.data.jpa.repository.query.JpaParametersParameterAccessor;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
+
+import com.rp.util.AopTargetUtils;
 
 /**
  * 
@@ -107,10 +115,10 @@ public class CStoredProcedureJpaQuery extends AbstractJpaQuery {
 		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
 		 */
 		@Override
-		protected Object doExecute(AbstractJpaQuery jpaQuery, Object[] values) {
-			Assert.isInstanceOf(CStoredProcedureJpaQuery.class, jpaQuery);
-			CStoredProcedureJpaQuery storedProcedureJpaQuery = (CStoredProcedureJpaQuery) jpaQuery;
-			StoredProcedureQuery storedProcedure = storedProcedureJpaQuery.createQuery(values);
+		protected Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
+			Assert.isInstanceOf(CStoredProcedureJpaQuery.class, query);
+			CStoredProcedureJpaQuery storedProcedureJpaQuery = (CStoredProcedureJpaQuery) query;
+			StoredProcedureQuery storedProcedure = storedProcedureJpaQuery.createQuery(accessor);
 			storedProcedure.execute();
 			return storedProcedureJpaQuery.extractOutputValue(storedProcedure);
 		}
@@ -142,8 +150,8 @@ public class CStoredProcedureJpaQuery extends AbstractJpaQuery {
 	 * java.lang.Object[])
 	 */
 	@Override
-	protected StoredProcedureQuery createQuery(Object[] values) {
-		return applyHints(doCreateQuery(values), getQueryMethod());
+	protected StoredProcedureQuery createQuery(JpaParametersParameterAccessor accessor) {
+		return applyHints(doCreateQuery(accessor), getQueryMethod());
 	}
 
 	/*
@@ -154,10 +162,54 @@ public class CStoredProcedureJpaQuery extends AbstractJpaQuery {
 	 * java.lang.Object[])
 	 */
 	@Override
-	protected StoredProcedureQuery doCreateQuery(Object[] values) {
-		return createBinder().bind(createStoredProcedure(), values);
+	protected StoredProcedureQuery doCreateQuery(JpaParametersParameterAccessor accessor) {
+		StoredProcedureQuery storedProcedure = createStoredProcedure();
+
+		return (StoredProcedureQuery) bind(storedProcedure, accessor.getValues());
 	}
 
+	@SuppressWarnings("rawtypes")
+	public Query bind(Query query, Object[] values) {
+    	//get proxy target if exist.
+        //must be hibernate QueryImpl
+    		org.hibernate.query.Query targetQuery = AopTargetUtils.getTarget(query);
+
+		@SuppressWarnings("deprecation")
+		SQLQuery sqlQuery = (SQLQuery) targetQuery;
+        Map<String, Object> params = getParams(values);
+        if (!CollectionUtils.isEmpty(params)) {
+            QueryBuilder.setParams(sqlQuery, params);
+        }
+        return query;
+    }
+	
+	private Map<String, Object> getParams(Object[] values) {
+        JpaParameters parameters = getQueryMethod().getParameters();
+        //gen model
+        Map<String, Object> params = new HashMap<String, Object>();
+        for (int i = 0; i < parameters.getNumberOfParameters(); i++) {
+            Object value = values[i];
+            Parameter parameter = parameters.getParameter(i);
+            if (value != null && canBindParameter(parameter)) {
+                if (!QueryBuilder.isValidValue(value)) {
+                    continue;
+                }
+                Class<?> clz = value.getClass();
+                if (clz.isPrimitive() || String.class.isAssignableFrom(clz) || Number.class.isAssignableFrom(clz)
+                        || clz.isArray() || Collection.class.isAssignableFrom(clz) || clz.isEnum()) {
+                    params.put(parameter.getName().get(), value);
+                } else {
+                    params = QueryBuilder.toParams(value);
+                }
+            }
+        }
+        return params;
+    }
+	
+	 protected boolean canBindParameter(Parameter parameter) {
+	        return parameter.isBindable();
+	    }
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -165,7 +217,7 @@ public class CStoredProcedureJpaQuery extends AbstractJpaQuery {
 	 * doCreateCountQuery(java.lang.Object[])
 	 */
 	@Override
-	protected TypedQuery<Long> doCreateCountQuery(Object[] values) {
+	protected TypedQuery<Long> doCreateCountQuery(JpaParametersParameterAccessor accessor) {
 		return null;
 	}
 
