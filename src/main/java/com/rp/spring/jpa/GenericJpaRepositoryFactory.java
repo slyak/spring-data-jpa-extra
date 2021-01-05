@@ -5,7 +5,9 @@ import java.util.Optional;
 import javax.persistence.EntityManager;
 
 import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.repository.query.DefaultJpaQueryMethodFactory;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
+import org.springframework.data.jpa.repository.query.JpaQueryMethodFactory;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
@@ -24,8 +26,8 @@ import org.springframework.lang.Nullable;
  */
 public class GenericJpaRepositoryFactory extends JpaRepositoryFactory {
 	private final EntityManager entityManager;
-
 	private final PersistenceProvider extractor;
+	private final JpaQueryMethodFactory queryMethodFactory;
 
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
 
@@ -38,12 +40,13 @@ public class GenericJpaRepositoryFactory extends JpaRepositoryFactory {
 		super(entityManager);
 		this.entityManager = entityManager;
 		this.extractor = PersistenceProvider.fromEntityManager(entityManager);
+		this.queryMethodFactory = new DefaultJpaQueryMethodFactory(extractor);
 	}
 	
 	@Override
 	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(@Nullable Key key,
 			QueryMethodEvaluationContextProvider evaluationContextProvider) {
-		return Optional.of(TemplateQueryLookupStrategy.create(entityManager, key, extractor, evaluationContextProvider, escapeCharacter));
+		return Optional.of(TemplateQueryLookupStrategy.create(entityManager, queryMethodFactory, key, evaluationContextProvider, escapeCharacter));
 	}
 
 	@Override

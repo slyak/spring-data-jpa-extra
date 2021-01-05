@@ -16,6 +16,7 @@ import javax.persistence.TypedQuery;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.jpa.repository.query.AbstractJpaQuery;
 import org.springframework.data.jpa.repository.query.JpaParameters;
+import org.springframework.data.jpa.repository.query.JpaParametersParameterAccessor;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 import org.springframework.data.repository.query.Parameter;
@@ -51,256 +52,261 @@ import org.springframework.util.ReflectionUtils;
  * @version 1.0
  * @created Jan 24, 2018 3:04:00 PM
  */
-public class CStoredProcedureJpaQuery extends AbstractJpaQuery {
-	
-	List<COutParameter> outParameters;
-	CProcedure procedure;
-	private final boolean useNamedParameters;
-
-	/**
-	 * Creates a new {@link StoredProcedureJpaQuery}.
-	 * 
-	 * @param method must not be {@literal null}
-	 * @param em must not be {@literal null}
-	 */
-	public CStoredProcedureJpaQuery(JpaQueryMethod method, EntityManager em) {
-		super(method, em);
-		Field methodField = ReflectionUtils.findField(JpaQueryMethod.class, "method");
-		methodField.setAccessible(true);
-		Method sourceMethod = null;
-		try {
-			sourceMethod = (Method) methodField.get(method);
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		}
-		this.outParameters = new ArrayList<COutParameter>();
-		procedure = AnnotationUtils.findAnnotation(sourceMethod, CProcedure.class);
-		Assert.notNull(procedure, "CProcedure must not be null!");
-		
-		COutParameters ops = AnnotationUtils.findAnnotation(sourceMethod, COutParameters.class);
-		if(ops == null) {
-			COutParameter op = AnnotationUtils.findAnnotation(sourceMethod, COutParameter.class);
-			if(op == null) {
-				
-			} else {
-				outParameters.add(op);
-			}
-		} else {
-			outParameters.addAll(Arrays.asList(ops.value()));
-		}
-		
-		this.useNamedParameters = useNamedParameters(method);
-
-	}
-	
-	@Override
-	protected JpaQueryExecution getExecution() {
-		return new CProcedureExecution();
-	}
-	
-	static class CProcedureExecution extends JpaQueryExecution {
-
-		/* 
-		 * (non-Javadoc)
-		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
-		 */
-		@Override
-		protected Object doExecute(AbstractJpaQuery jpaQuery, Object[] values) {
-			Assert.isInstanceOf(CStoredProcedureJpaQuery.class, jpaQuery);
-			CStoredProcedureJpaQuery storedProcedureJpaQuery = (CStoredProcedureJpaQuery) jpaQuery;
-			StoredProcedureQuery storedProcedure = storedProcedureJpaQuery.createQuery(values);
-			storedProcedure.execute();
-			return storedProcedureJpaQuery.extractOutputValue(storedProcedure);
-		}
-	}
-
-	/**
-	 * Determine whether to used named parameters for the given query method.
-	 * 
-	 * @param method
-	 *            must not be {@literal null}.
-	 * @return
-	 */
-	private static boolean useNamedParameters(QueryMethod method) {
-
-		for (Parameter parameter : method.getParameters()) {
-			if (parameter.isNamedParameter()) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.jpa.repository.query.AbstractJpaQuery#createQuery(
-	 * java.lang.Object[])
-	 */
-	@Override
-	protected StoredProcedureQuery createQuery(Object[] values) {
-		return applyHints(doCreateQuery(values), getQueryMethod());
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateQuery(
-	 * java.lang.Object[])
-	 */
-	@Override
-	protected StoredProcedureQuery doCreateQuery(Object[] values) {
-		return createBinder().bind(createStoredProcedure(), values);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#
-	 * doCreateCountQuery(java.lang.Object[])
-	 */
-	@Override
-	protected TypedQuery<Long> doCreateCountQuery(Object[] values) {
-		return null;
-	}
-
-	/**
-	 * Extracts the output value from the given {@link StoredProcedureQuery}.
-	 * 
-	 * @param storedProcedureQuery
-	 *            must not be {@literal null}.
-	 * @return
-	 */
-	Object extractOutputValue(StoredProcedureQuery storedProcedureQuery) {
-		Assert.notNull(storedProcedureQuery, "CStoredProcedureQuery must not be null!");
-		JpaQueryMethod queryMethod = getQueryMethod();
-		Class<?> returnedObjectType = queryMethod.getReturnedObjectType();
-		
-		if(! hasReturnValue()) {//方法定义为void返回值
-			return null;
-		}
-		
-		if(returnedObjectType.isAssignableFrom(Map.class)) {//返回值为Map的处理
-			Map<String, Object> retMap = new LinkedHashMap<String, Object>();
-			Assert.notEmpty(outParameters, "outParameters在返回值为Map.class的时候不能为空");
-			for(int i = 0; i < outParameters.size(); i ++) {
-				COutParameter op = outParameters.get(i);
-				String name = op.name();
-				Object outputParameterValue = null;
-				if(useNamedParameters) {
-					outputParameterValue = storedProcedureQuery.getOutputParameterValue(name);
-				} else {
-					JpaParameters parameters = getQueryMethod().getParameters();
-					outputParameterValue = storedProcedureQuery.getOutputParameterValue(parameters.getNumberOfParameters() + (i + 1));
-				}
-				
-				retMap.put(name, outputParameterValue);
-			}
-			
-			return retMap;
-		} else if(returnedObjectType.isArray()) {
-			Assert.notEmpty(outParameters, "outParameters在返回值为Array的时候不能为空");
-			List<Object> retList = new ArrayList<Object>();
-			for(int i = 0; i < outParameters.size(); i ++) {
-				COutParameter op = outParameters.get(i);
-				String name = op.name();
-				Object outputParameterValue = null;
-				if(useNamedParameters) {
-					outputParameterValue = storedProcedureQuery.getOutputParameterValue(name);
-				} else {
-					JpaParameters parameters = getQueryMethod().getParameters();
-					outputParameterValue = storedProcedureQuery.getOutputParameterValue(parameters.getNumberOfParameters() + (i + 1));
-				}
-				
-				retList.add(outputParameterValue);
-			}
-			Object[] retArray = new Object[retList.size()];
-			return retList.toArray(retArray );
-		} else if(returnedObjectType.isAssignableFrom(List.class)) {
-			Assert.notEmpty(outParameters, "outParameters在返回值为List的时候不能为空");
-			List<Object> retList = new ArrayList<Object>();
-			for(int i = 0; i < outParameters.size(); i ++) {
-				COutParameter op = outParameters.get(i);
-				String name = op.name();
-				Object outputParameterValue = null;
-				if(useNamedParameters) {
-					outputParameterValue = storedProcedureQuery.getOutputParameterValue(name);
-				} else {
-					JpaParameters parameters = getQueryMethod().getParameters();
-					outputParameterValue = storedProcedureQuery.getOutputParameterValue(parameters.getNumberOfParameters() + (i + 1));
-				}
-				retList.add(outputParameterValue);
-			}
-			return retList;
-		} else {
-			JpaParameters parameters = getQueryMethod().getParameters();
-			return storedProcedureQuery.getOutputParameterValue(parameters.getNumberOfParameters() + 1);
-		}
-	}
-
-	private boolean hasReturnValue() {
-		JpaQueryMethod queryMethod = getQueryMethod();
-		Class<?> returnedObjectType = queryMethod.getReturnedObjectType();
-		
-		if(void.class.equals(returnedObjectType) || Void.class.equals(returnedObjectType)) {//方法定义为void返回值
-			return false;
-		}
-		return true;
-	}
-	/**
-	 * Creates a new JPA 2.1 {@link StoredProcedureQuery} from this
-	 * {@link StoredProcedureJpaQuery}.
-	 * 
-	 * @return
-	 */
-	private StoredProcedureQuery createStoredProcedure() {
-		return newAdhocStoredProcedureQuery();
-	}
-
-	/**
-	 * Creates a new ad-hoc {@link StoredProcedureQuery} from the given
-	 * {@link StoredProcedureAttributes}.
-	 * 
-	 * @return
-	 */
-	private StoredProcedureQuery newAdhocStoredProcedureQuery() {
-		JpaParameters params = getQueryMethod().getParameters();
-		String procedureName = procedure.value();
-		StoredProcedureQuery procedureQuery = getEntityManager().createStoredProcedureQuery(procedureName);
-
-		for (Parameter param : params) {
-
-			if (!param.isBindable()) {
-				continue;
-			}
-
-			if (useNamedParameters) {
-				procedureQuery.registerStoredProcedureParameter(param.getName().get(), param.getType(), ParameterMode.IN);
-			} else {
-				procedureQuery.registerStoredProcedureParameter(param.getIndex() + 1, param.getType(), ParameterMode.IN);
-			}
-		}
-
-		if (hasReturnValue()) {
-			ParameterMode mode = ParameterMode.OUT;
-			if (useNamedParameters) {
-				for(COutParameter op : outParameters) {
-					procedureQuery.registerStoredProcedureParameter(op.name(), op.type(), mode);
-				}
-			} else {
-				int i = 1;
-				for(COutParameter op : outParameters) {
-					procedureQuery.registerStoredProcedureParameter(params.getNumberOfParameters() + i, op.type(), mode);
-					i ++;
-				}
-			}
-		}
-
-		return procedureQuery;
-	}
-}
+//public class CStoredProcedureJpaQuery extends AbstractJpaQuery {
+//	
+//	List<COutParameter> outParameters;
+//	CProcedure procedure;
+//	private final boolean useNamedParameters;
+//
+//	/**
+//	 * Creates a new {@link StoredProcedureJpaQuery}.
+//	 * 
+//	 * @param method must not be {@literal null}
+//	 * @param em must not be {@literal null}
+//	 */
+//	public CStoredProcedureJpaQuery(JpaQueryMethod method, EntityManager em) {
+//		super(method, em);
+//		Field methodField = ReflectionUtils.findField(JpaQueryMethod.class, "method");
+//		methodField.setAccessible(true);
+//		Method sourceMethod = null;
+//		try {
+//			sourceMethod = (Method) methodField.get(method);
+//		} catch (IllegalArgumentException e) {
+//			e.printStackTrace();
+//		} catch (IllegalAccessException e) {
+//			e.printStackTrace();
+//		}
+//		this.outParameters = new ArrayList<COutParameter>();
+//		procedure = AnnotationUtils.findAnnotation(sourceMethod, CProcedure.class);
+//		Assert.notNull(procedure, "CProcedure must not be null!");
+//		
+//		COutParameters ops = AnnotationUtils.findAnnotation(sourceMethod, COutParameters.class);
+//		if(ops == null) {
+//			COutParameter op = AnnotationUtils.findAnnotation(sourceMethod, COutParameter.class);
+//			if(op == null) {
+//				
+//			} else {
+//				outParameters.add(op);
+//			}
+//		} else {
+//			outParameters.addAll(Arrays.asList(ops.value()));
+//		}
+//		
+//		this.useNamedParameters = useNamedParameters(method);
+//
+//	}
+//	
+//	@Override
+//	protected JpaQueryExecution getExecution() {
+//		return new CProcedureExecution();
+//	}
+//	
+//	static class CProcedureExecution extends JpaQueryExecution {
+//
+//		/* 
+//		 * (non-Javadoc)
+//		 * @see org.springframework.data.jpa.repository.query.JpaQueryExecution#doExecute(org.springframework.data.jpa.repository.query.AbstractJpaQuery, java.lang.Object[])
+//		 */
+//		@Override
+//		protected Object doExecute(AbstractJpaQuery jpaQuery, JpaParametersParameterAccessor accessor) {
+//			Object[] values = accessor.getValues();
+//			
+//			Assert.isInstanceOf(CStoredProcedureJpaQuery.class, jpaQuery);
+//			CStoredProcedureJpaQuery storedProcedureJpaQuery = (CStoredProcedureJpaQuery) jpaQuery;
+//			StoredProcedureQuery storedProcedure = storedProcedureJpaQuery.createQuery(values);
+//			storedProcedure.execute();
+//			return storedProcedureJpaQuery.extractOutputValue(storedProcedure);
+//		}
+//	}
+//
+//	/**
+//	 * Determine whether to used named parameters for the given query method.
+//	 * 
+//	 * @param method
+//	 *            must not be {@literal null}.
+//	 * @return
+//	 */
+//	private static boolean useNamedParameters(QueryMethod method) {
+//
+//		for (Parameter parameter : method.getParameters()) {
+//			if (parameter.isNamedParameter()) {
+//				return true;
+//			}
+//		}
+//
+//		return false;
+//	}
+//
+//	/*
+//	 * (non-Javadoc)
+//	 * 
+//	 * @see
+//	 * org.springframework.data.jpa.repository.query.AbstractJpaQuery#createQuery(
+//	 * java.lang.Object[])
+//	 */
+//	@Override
+//	protected StoredProcedureQuery createQuery(JpaParametersParameterAccessor accessor) {
+//		return applyHints(doCreateQuery(accessor), getQueryMethod());
+//	}
+//
+//	/*
+//	 * (non-Javadoc)
+//	 * 
+//	 * @see
+//	 * org.springframework.data.jpa.repository.query.AbstractJpaQuery#doCreateQuery(
+//	 * java.lang.Object[])
+//	 */
+//	@Override
+//	protected StoredProcedureQuery doCreateQuery(JpaParametersParameterAccessor accessor) {
+//		StoredProcedureQuery storedProcedure = createStoredProcedure();
+//		QueryParameterSetter.QueryMetadata metadata = metadataCache.getMetadata("singleton", storedProcedure);
+//
+//		return parameterBinder.get().bind(storedProcedure, metadata, accessor);
+//	}
+//
+//	/*
+//	 * (non-Javadoc)
+//	 * 
+//	 * @see org.springframework.data.jpa.repository.query.AbstractJpaQuery#
+//	 * doCreateCountQuery(java.lang.Object[])
+//	 */
+//	@Override
+//	protected TypedQuery<Long> doCreateCountQuery(Object[] values) {
+//		return null;
+//	}
+//
+//	/**
+//	 * Extracts the output value from the given {@link StoredProcedureQuery}.
+//	 * 
+//	 * @param storedProcedureQuery
+//	 *            must not be {@literal null}.
+//	 * @return
+//	 */
+//	Object extractOutputValue(StoredProcedureQuery storedProcedureQuery) {
+//		Assert.notNull(storedProcedureQuery, "CStoredProcedureQuery must not be null!");
+//		JpaQueryMethod queryMethod = getQueryMethod();
+//		Class<?> returnedObjectType = queryMethod.getReturnedObjectType();
+//		
+//		if(! hasReturnValue()) {//方法定义为void返回值
+//			return null;
+//		}
+//		
+//		if(returnedObjectType.isAssignableFrom(Map.class)) {//返回值为Map的处理
+//			Map<String, Object> retMap = new LinkedHashMap<String, Object>();
+//			Assert.notEmpty(outParameters, "outParameters在返回值为Map.class的时候不能为空");
+//			for(int i = 0; i < outParameters.size(); i ++) {
+//				COutParameter op = outParameters.get(i);
+//				String name = op.name();
+//				Object outputParameterValue = null;
+//				if(useNamedParameters) {
+//					outputParameterValue = storedProcedureQuery.getOutputParameterValue(name);
+//				} else {
+//					JpaParameters parameters = getQueryMethod().getParameters();
+//					outputParameterValue = storedProcedureQuery.getOutputParameterValue(parameters.getNumberOfParameters() + (i + 1));
+//				}
+//				
+//				retMap.put(name, outputParameterValue);
+//			}
+//			
+//			return retMap;
+//		} else if(returnedObjectType.isArray()) {
+//			Assert.notEmpty(outParameters, "outParameters在返回值为Array的时候不能为空");
+//			List<Object> retList = new ArrayList<Object>();
+//			for(int i = 0; i < outParameters.size(); i ++) {
+//				COutParameter op = outParameters.get(i);
+//				String name = op.name();
+//				Object outputParameterValue = null;
+//				if(useNamedParameters) {
+//					outputParameterValue = storedProcedureQuery.getOutputParameterValue(name);
+//				} else {
+//					JpaParameters parameters = getQueryMethod().getParameters();
+//					outputParameterValue = storedProcedureQuery.getOutputParameterValue(parameters.getNumberOfParameters() + (i + 1));
+//				}
+//				
+//				retList.add(outputParameterValue);
+//			}
+//			Object[] retArray = new Object[retList.size()];
+//			return retList.toArray(retArray );
+//		} else if(returnedObjectType.isAssignableFrom(List.class)) {
+//			Assert.notEmpty(outParameters, "outParameters在返回值为List的时候不能为空");
+//			List<Object> retList = new ArrayList<Object>();
+//			for(int i = 0; i < outParameters.size(); i ++) {
+//				COutParameter op = outParameters.get(i);
+//				String name = op.name();
+//				Object outputParameterValue = null;
+//				if(useNamedParameters) {
+//					outputParameterValue = storedProcedureQuery.getOutputParameterValue(name);
+//				} else {
+//					JpaParameters parameters = getQueryMethod().getParameters();
+//					outputParameterValue = storedProcedureQuery.getOutputParameterValue(parameters.getNumberOfParameters() + (i + 1));
+//				}
+//				retList.add(outputParameterValue);
+//			}
+//			return retList;
+//		} else {
+//			JpaParameters parameters = getQueryMethod().getParameters();
+//			return storedProcedureQuery.getOutputParameterValue(parameters.getNumberOfParameters() + 1);
+//		}
+//	}
+//
+//	private boolean hasReturnValue() {
+//		JpaQueryMethod queryMethod = getQueryMethod();
+//		Class<?> returnedObjectType = queryMethod.getReturnedObjectType();
+//		
+//		if(void.class.equals(returnedObjectType) || Void.class.equals(returnedObjectType)) {//方法定义为void返回值
+//			return false;
+//		}
+//		return true;
+//	}
+//	/**
+//	 * Creates a new JPA 2.1 {@link StoredProcedureQuery} from this
+//	 * {@link StoredProcedureJpaQuery}.
+//	 * 
+//	 * @return
+//	 */
+//	private StoredProcedureQuery createStoredProcedure() {
+//		return newAdhocStoredProcedureQuery();
+//	}
+//
+//	/**
+//	 * Creates a new ad-hoc {@link StoredProcedureQuery} from the given
+//	 * {@link StoredProcedureAttributes}.
+//	 * 
+//	 * @return
+//	 */
+//	private StoredProcedureQuery newAdhocStoredProcedureQuery() {
+//		JpaParameters params = getQueryMethod().getParameters();
+//		String procedureName = procedure.value();
+//		StoredProcedureQuery procedureQuery = getEntityManager().createStoredProcedureQuery(procedureName);
+//
+//		for (Parameter param : params) {
+//
+//			if (!param.isBindable()) {
+//				continue;
+//			}
+//
+//			if (useNamedParameters) {
+//				procedureQuery.registerStoredProcedureParameter(param.getName().get(), param.getType(), ParameterMode.IN);
+//			} else {
+//				procedureQuery.registerStoredProcedureParameter(param.getIndex() + 1, param.getType(), ParameterMode.IN);
+//			}
+//		}
+//
+//		if (hasReturnValue()) {
+//			ParameterMode mode = ParameterMode.OUT;
+//			if (useNamedParameters) {
+//				for(COutParameter op : outParameters) {
+//					procedureQuery.registerStoredProcedureParameter(op.name(), op.type(), mode);
+//				}
+//			} else {
+//				int i = 1;
+//				for(COutParameter op : outParameters) {
+//					procedureQuery.registerStoredProcedureParameter(params.getNumberOfParameters() + i, op.type(), mode);
+//					i ++;
+//				}
+//			}
+//		}
+//
+//		return procedureQuery;
+//	}
+//}
