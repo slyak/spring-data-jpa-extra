@@ -243,6 +243,7 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <additionalparam>-Xdoclint:none</additionalparam>
                     <show>public</show>
                     <charset>${project.build.sourceEncoding}</charset>
                     <encoding>${project.build.sourceEncoding}</encoding>
