@@ -3,10 +3,7 @@ package com.slyak.spring.jpa;
 import com.slyak.util.AopTargetUtils;
 import org.hibernate.query.NativeQuery;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.query.AbstractJpaQuery;
-import org.springframework.data.jpa.repository.query.JpaParameters;
-import org.springframework.data.jpa.repository.query.JpaQueryMethod;
-import org.springframework.data.jpa.repository.query.QueryUtils;
+import org.springframework.data.jpa.repository.query.*;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
@@ -43,6 +40,15 @@ public class FreemarkerTemplateQuery extends AbstractJpaQuery {
     }
 
     @Override
+    protected Query doCreateQuery(JpaParametersParameterAccessor accessor) {
+        return doCreateQuery(accessor.getValues());
+    }
+
+    @Override
+    protected Query doCreateCountQuery(JpaParametersParameterAccessor accessor) {
+        return doCreateCountQuery(accessor.getValues());
+    }
+
     protected Query doCreateQuery(Object[] values) {
         String nativeQuery = getQuery(values);
         JpaParameters parameters = getQueryMethod().getParameters();
@@ -131,8 +137,6 @@ public class FreemarkerTemplateQuery extends AbstractJpaQuery {
         return getQueryMethod().getName();
     }
 
-    @Override
-    @SuppressWarnings("unchecked")
     protected TypedQuery<Long> doCreateCountQuery(Object[] values) {
         TypedQuery query = (TypedQuery) getEntityManager()
                 .createNativeQuery(QueryBuilder.toCountQuery(getQuery(values)));

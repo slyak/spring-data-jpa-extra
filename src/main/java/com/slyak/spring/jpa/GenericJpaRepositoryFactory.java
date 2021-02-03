@@ -7,8 +7,9 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.OrderUtils;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
-import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.QueryLookupStrategy;
+import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
+import org.springframework.data.spel.EvaluationContextProvider;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
@@ -48,7 +49,7 @@ public class GenericJpaRepositoryFactory extends JpaRepositoryFactory {
 
 
     protected Optional<QueryLookupStrategy> getQueryLookupStrategy(@Nullable QueryLookupStrategy.Key key,
-                                                                   EvaluationContextProvider evaluationContextProvider) {
+                                                                   QueryMethodEvaluationContextProvider evaluationContextProvider) {
         return Optional.of(TemplateQueryLookupStrategy.create(entityManager, key, extractor, evaluationContextProvider));
     }
 
