@@ -45,7 +45,7 @@
     <!-- issue -->
     <issueManagement>
         <system>Github Issue</system>
-        <url>https://github.com/slyak/spring-data-jpa-extra/issues</url>
+        <url>https://github.com/slyak/slyak-parent/issues</url>
     </issueManagement>
 
     <!-- license -->
