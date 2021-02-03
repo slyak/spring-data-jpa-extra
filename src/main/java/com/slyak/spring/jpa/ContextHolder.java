@@ -11,7 +11,7 @@ import java.util.Collection;
  * @author <a href="mailto:stormning@163.com">stormning</a>
  * @version V1.0, 16/3/15.
  */
-class ContextHolder {
+public class ContextHolder {
 	public static ApplicationContext appContext;
 
 	public static <T> Collection<T> getBeansOfType(Class<T> clazz) {

@@ -29,49 +29,57 @@ public class JpaTest {
 	@Before
 	public void addSomeSample() {
 		sampleRepository.deleteAll();
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 12; i++) {
 			Sample sample = new Sample();
 			sample.setContent("hello world" + i);
 			sampleRepository.save(sample);
 		}
+		
 	}
 
 	@Test
 	public void findByTemplateQuery() {
-		Page<Sample> samples = sampleRepository.findByContent("world", new PageRequest(1, 100));
-		Assert.assertTrue(samples.getTotalElements() == 10);
+		Page<Sample> samples = sampleRepository.findByContent("%world1%", new PageRequest(0, 100));
+		Assert.assertTrue(samples.getTotalElements() == 3);
 	}
+	
+	@Test
+	public void findByTemplateQueryNullValue() {
+		Page<Sample> samples = sampleRepository.findByContent(null, new PageRequest(0, 100));
+		Assert.assertTrue(samples.getTotalElements() == 12);
+	}
+	
 
 	@Test
 	public void countByTemplateQuery() {
-		long count = sampleRepository.countContent("world");
-		Assert.assertTrue(count == 10);
+		long count = sampleRepository.countContent("%world1%");
+		Assert.assertTrue(count == 3);
 	}
 
 	@Test
 	public void findByTemplateQueryAndReturnDTOs() {
 		List<SampleDTO> dtos = sampleRepository.findDtos();
-		Assert.assertTrue(dtos.size() == 10);
+		Assert.assertTrue(dtos.size() == 12);
 	}
 
 	@Test
 	public void findByTemplateQueryWithTemplateQueryObject() {
 		SampleQuery sq = new SampleQuery();
-		sq.setContent("world");
+		sq.setContent("%world1%");
 		List<Sample> samples = sampleRepository.findByTemplateQueryObject(sq, null);
-		Assert.assertTrue(samples.size() == 10);
+		Assert.assertTrue(samples.size() == 3);
 	}
 
 	@Test
 	public void findBySpringElQuery() {
-		List<Sample> dtos = sampleRepository.findDtos2("%world%");
-		Assert.assertTrue(dtos.size() == 10);
+		List<Sample> dtos = sampleRepository.findDtos2("%world1%");
+		Assert.assertTrue(dtos.size() == 3);
 	}
 
 	@Test
 	public void findMap(){
 		List<Map<String,Object>> listMaps = sampleRepository.findMap();
-		Assert.assertTrue(listMaps.size() == 10);
+		Assert.assertTrue(listMaps.size() == 12);
 	}
 
 }

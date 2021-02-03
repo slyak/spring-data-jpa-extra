@@ -122,7 +122,8 @@ public class FreemarkerTemplateQuery extends AbstractJpaQuery {
     }
 
     private String getEntityName() {
-        return getQueryMethod().getEntityInformation().getJavaType().getSimpleName();
+        //return getQueryMethod().getEntityInformation().getJavaType().getSimpleName();
+    	return getQueryMethod().getEntityInformation().getJavaType().getName();
     }
 
     private String getMethodName() {
