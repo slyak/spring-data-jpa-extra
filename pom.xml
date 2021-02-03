@@ -116,12 +116,6 @@
             <artifactId>hibernate-entitymanager</artifactId>
         </dependency>
 
-        <!--fastjson-->
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-        </dependency>
-
         <!--commons-->
         <dependency>
             <groupId>commons-beanutils</groupId>
@@ -147,7 +141,7 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>${commons-io-version}</version>
+            <version>2.6</version>
         </dependency>
 
         <dependency>
