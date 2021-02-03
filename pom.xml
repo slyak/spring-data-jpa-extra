@@ -282,5 +282,18 @@
         </resources>
     </build>
 
+    <!-- 发布仓库 -->
+    <distributionManagement>
+        <snapshotRepository>
+            <id>oss-snapshots</id>
+            <name>oss SNAPSHOTS</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>oss-releases</id>
+            <name>oss releases</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 
 </project>
