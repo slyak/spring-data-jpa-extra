@@ -2,9 +2,9 @@ package com.slyak.spring.jpa;
 
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.provider.QueryExtractor;
-import org.springframework.data.jpa.repository.query.DefaultJpaQueryMethodFactory;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
+import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -25,7 +25,7 @@ import java.lang.reflect.Method;
 public class TemplateQueryLookupStrategy implements QueryLookupStrategy {
 
     private final EntityManager entityManager;
-    private final DefaultJpaQueryMethodFactory queryMethodFactory;
+//    private final DefaultJpaQueryMethodFactory queryMethodFactory;
 
     private QueryLookupStrategy jpaQueryLookupStrategy;
 
@@ -37,8 +37,8 @@ public class TemplateQueryLookupStrategy implements QueryLookupStrategy {
     public TemplateQueryLookupStrategy(EntityManager entityManager, Key key, QueryExtractor extractor,
                                        QueryMethodEvaluationContextProvider evaluationContextProvider) {
         this.extractor = PersistenceProvider.fromEntityManager(entityManager);
-        this.queryMethodFactory = new DefaultJpaQueryMethodFactory(extractor);
-        this.jpaQueryLookupStrategy = JpaQueryLookupStrategy.create(entityManager, queryMethodFactory, key, evaluationContextProvider, escapeCharacter);
+//        this.queryMethodFactory = new DefaultJpaQueryMethodFactory(extractor);
+        this.jpaQueryLookupStrategy = JpaQueryLookupStrategy.create(entityManager, key, extractor, evaluationContextProvider, escapeCharacter);
         this.extractor = extractor;
         this.entityManager = entityManager;
     }
@@ -54,7 +54,7 @@ public class TemplateQueryLookupStrategy implements QueryLookupStrategy {
         if (method.getAnnotation(TemplateQuery.class) == null) {
             return jpaQueryLookupStrategy.resolveQuery(method, metadata, factory, namedQueries);
         } else {
-            return new FreemarkerTemplateQuery(queryMethodFactory.build(method, metadata, factory), entityManager);
+            return new FreemarkerTemplateQuery(new JpaQueryMethod(method, metadata, factory, extractor), entityManager);
         }
     }
 }
