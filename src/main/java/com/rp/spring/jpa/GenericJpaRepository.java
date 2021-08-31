@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +27,7 @@ import com.querydsl.jpa.JPQLQuery;
  * @created May 4, 2018 3:25:51 PM
  */
 @NoRepositoryBean
-public interface GenericJpaRepository<T, ID extends Serializable> extends JpaRepository<T, ID>, QuerydslPredicateExecutor<T> {
+public interface GenericJpaRepository<T, ID extends Serializable> extends JpaRepository<T, ID>, QuerydslPredicateExecutor<T>, JpaSpecificationExecutor<T> {
 	final int STATUS_NORMAL = 1;
 	final int STATUS_DISABLE = -1;
 	
@@ -37,6 +38,8 @@ public interface GenericJpaRepository<T, ID extends Serializable> extends JpaRep
 	 * @return
 	 */
 	List<T> findAll(Predicate predicate, int maxResult);
+	
+	List<T> findAll(Predicate predicate, int maxResult, OrderSpecifier<?>... orders);
 	
 	List<T> findAll(Predicate predicate);
 	
@@ -49,6 +52,8 @@ public interface GenericJpaRepository<T, ID extends Serializable> extends JpaRep
 	List<T> findAll(OrderSpecifier<?>... orders);
 	
 	long count(Predicate... predicate);
+	
+	<K> Page<K> findAll(JPQLQuery<K> jpqlQuery, Pageable pageable, OrderSpecifier<?>... sorts);
 	
 	<K> Page<K> findAll(JPQLQuery<K> jpqlQuery, Pageable pageable);
 	

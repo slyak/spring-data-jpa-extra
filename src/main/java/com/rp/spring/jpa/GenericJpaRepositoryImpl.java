@@ -90,6 +90,11 @@ public class GenericJpaRepositoryImpl<T, ID extends Serializable> extends Queryd
 	}
 	
 	@Override
+	public List<T> findAll(Predicate predicate, int maxResult, OrderSpecifier<?>... orders) {
+		return createQuery(predicate).select(path).limit(maxResult).orderBy(orders).fetch();
+	}
+	
+	@Override
 	public List<T> findAll(Predicate predicate) {
 		return createQuery(predicate).select(path).fetch();
 	}
@@ -109,6 +114,14 @@ public class GenericJpaRepositoryImpl<T, ID extends Serializable> extends Queryd
 		return createQuery(predicate).select(path).fetchFirst();
 	}
 
+	@Override
+	public <K> Page<K> findAll(JPQLQuery<K> jpqlQuery, Pageable pageable, OrderSpecifier<?>... sorts) {
+		Assert.notNull(pageable, "Pageable must not be null!");
+		final JPQLQuery<?> countQuery = jpqlQuery;
+		JPQLQuery<K> query = querydsl.applyPagination(pageable, jpqlQuery).orderBy(sorts);
+		return PageableExecutionUtils.getPage(query.fetch(), pageable, countQuery::fetchCount);
+	}
+	
 	@Override
 	public <K> Page<K> findAll(JPQLQuery<K> jpqlQuery, Pageable pageable) {
 		Assert.notNull(pageable, "Pageable must not be null!");
@@ -133,13 +146,17 @@ public class GenericJpaRepositoryImpl<T, ID extends Serializable> extends Queryd
 
 		Assert.notNull(id, "主键不能为空!");
 		Optional<T> optional = findById(id);
-		Assert.isTrue(optional.isPresent(), "找不到数据");
+		Assert.isTrue(optional.isPresent(), "找不到数据[" + id + "]");
 		
 		T t = optional.get();
 		Integer dbValue = (Integer) ReflectionUtils.invokeMethod(statusDescriptor.getReadMethod(), t);
-		Assert.isTrue(com.rp.util.NumberUtils.notEquals(dbValue, status), String.format("已是%s状态",status == STATUS_NORMAL ? "启用" : "禁用" ));
+		if(com.rp.util.NumberUtils.equals(dbValue, status)) {
+			//String.format("已是%s状态",status == STATUS_NORMAL ? "启用" : "禁用" )
+			return;
+		}
+		
+//		Assert.isTrue(com.rp.util.NumberUtils.notEquals(dbValue, status), String.format("已是%s状态",status == STATUS_NORMAL ? "启用" : "禁用" ));
 		ReflectionUtils.invokeMethod(statusDescriptor.getWriteMethod(), t, status);
-
 		saveAndFlush(t);
 	}
 
