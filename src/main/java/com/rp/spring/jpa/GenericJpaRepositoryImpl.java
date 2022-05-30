@@ -24,6 +24,8 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPQLQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.querydsl.jpa.impl.JPAUpdateClause;
 
 /**
  * .
@@ -169,5 +171,25 @@ public class GenericJpaRepositoryImpl<T, ID extends Serializable> extends Queryd
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public JpaEntityInformation<T, ID> jpaEntityInformation() {
+		return eif;
+	}
+
+	@Override
+	public EntityManager em() {
+		return em;
+	}
+	
+	@Override
+	public JPAQueryFactory getJPAQueryFactory() {
+		return new JPAQueryFactory(em);
+	}
+	
+	@Override
+	public JPAUpdateClause update(EntityPath<?> path) {
+		return getJPAQueryFactory().update(path);
 	}
 }

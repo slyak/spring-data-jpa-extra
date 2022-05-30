@@ -3,18 +3,24 @@ package com.rp.spring.jpa;
 import java.io.Serializable;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.JPQLQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.querydsl.jpa.impl.JPAUpdateClause;
 
 /**
  * 
@@ -79,5 +85,13 @@ public interface GenericJpaRepository<T, ID extends Serializable> extends JpaRep
 	
 	@Transactional
 	void setStatusValue(ID id, Integer status);
+	
+	JpaEntityInformation<T, ID> jpaEntityInformation();
+	
+	EntityManager em();
+	
+	JPAQueryFactory getJPAQueryFactory();
+	
+	JPAUpdateClause update(EntityPath<?> path);
 }
 
